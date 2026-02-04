@@ -1,0 +1,523 @@
+{
+  "metadata": {
+    "title": "PostgreSQL Error Code Catalog for RCA Automation with Telemetry Correlation",
+    "version": "PostgreSQL 17",
+    "copyright": "Copyright 2025 Beta ORI Inc. Canada, All Rights Reserved.",
+    "author": "Awase Khirni Syed",
+    "total_error_codes": 397,
+    "generated_date": "2025-05-06",
+    "source": "https://www.postgresql.org/docs/current/errcodes-appendix.html",
+    "rca_schema_version": "3.0",
+    "description": "Machine-readable catalog with telemetry correlation for root cause analysis automation",
+    "telemetry_integration": {
+      "supported_extensions": ["pg_stat_statements", "pg_locks", "pg_stat_monitor", "pg_wait_sampling"],
+      "observability_platforms": ["Datadog", "Grafana", "Prometheus", "New Relic", "Splunk"],
+      "correlation_latency": "< 5 seconds (real-time)",
+      "predictive_window": "15 minutes (leading indicators)"
+    }
+  },
+  "error_classes": {
+    "00": {"name": "Successful Completion", "severity": "SUCCESS"},
+    "01": {"name": "Warning", "severity": "WARNING"},
+    "02": {"name": "No Data", "severity": "WARNING"},
+    "03": {"name": "SQL Statement Not Yet Complete", "severity": "ERROR"},
+    "08": {"name": "Connection Exception", "severity": "FATAL"},
+    "09": {"name": "Triggered Action Exception", "severity": "ERROR"},
+    "0A": {"name": "Feature Not Supported", "severity": "ERROR"},
+    "0B": {"name": "Invalid Transaction Initiation", "severity": "ERROR"},
+    "0F": {"name": "Locator Exception", "severity": "ERROR"},
+    "0L": {"name": "Invalid Grantor", "severity": "ERROR"},
+    "0P": {"name": "Invalid Role Specification", "severity": "ERROR"},
+    "0Z": {"name": "Diagnostics Exception", "severity": "ERROR"},
+    "10": {"name": "XQuery Error", "severity": "ERROR"},
+    "20": {"name": "Case Not Found", "severity": "ERROR"},
+    "21": {"name": "Cardinality Violation", "severity": "ERROR"},
+    "22": {"name": "Data Exception", "severity": "ERROR"},
+    "23": {"name": "Integrity Constraint Violation", "severity": "ERROR"},
+    "24": {"name": "Invalid Cursor State", "severity": "ERROR"},
+    "25": {"name": "Invalid Transaction State", "severity": "ERROR"},
+    "26": {"name": "Invalid SQL Statement Name", "severity": "ERROR"},
+    "27": {"name": "Triggered Data Change Violation", "severity": "ERROR"},
+    "28": {"name": "Invalid Authorization Specification", "severity": "ERROR"},
+    "2B": {"name": "Dependent Privilege Descriptors Still Exist", "severity": "ERROR"},
+    "2D": {"name": "Invalid Transaction Termination", "severity": "ERROR"},
+    "2F": {"name": "SQL Routine Exception", "severity": "ERROR"},
+    "34": {"name": "Invalid Cursor Name", "severity": "ERROR"},
+    "38": {"name": "External Routine Exception", "severity": "ERROR"},
+    "39": {"name": "External Routine Invocation Exception", "severity": "ERROR"},
+    "3B": {"name": "Savepoint Exception", "severity": "ERROR"},
+    "3D": {"name": "Invalid Catalog Name", "severity": "ERROR"},
+    "3F": {"name": "Invalid Schema Name", "severity": "ERROR"},
+    "40": {"name": "Transaction Rollback", "severity": "ERROR"},
+    "42": {"name": "Syntax Error or Access Rule Violation", "severity": "ERROR"},
+    "44": {"name": "WITH CHECK OPTION Violation", "severity": "ERROR"},
+    "53": {"name": "Insufficient Resources", "severity": "FATAL"},
+    "54": {"name": "Program Limit Exceeded", "severity": "ERROR"},
+    "55": {"name": "Object Not In Prerequisite State", "severity": "ERROR"},
+    "57": {"name": "Operator Intervention", "severity": "ERROR"},
+    "58": {"name": "System Error", "severity": "FATAL"},
+    "F0": {"name": "Configuration File Error", "severity": "FATAL"},
+    "HV": {"name": "Foreign Data Wrapper Error", "severity": "ERROR"},
+    "P0": {"name": "PL/pgSQL Error", "severity": "ERROR"},
+    "XX": {"name": "Internal Error", "severity": "PANIC"}
+  },
+  "error_codes": [
+    {
+      "sqlstate": "00000",
+      "class": "00",
+      "class_name": "Successful Completion",
+      "condition_name": "successful_completion",
+      "severity": "SUCCESS",
+      "description": "Operation completed successfully without errors",
+      "root_cause": "Normal successful execution of SQL statement or transaction",
+      "remediation": "No action required - operation succeeded",
+      "common_scenarios": ["COMMIT after successful transaction", "Successful DML operations", "Query execution with results"],
+      "rca_priority": "NONE",
+      "monitoring_recommendation": "Log for audit trail only",
+      "telemetry_correlation": {
+        "slow_query_indicators": null,
+        "lock_contention_patterns": null,
+        "frequency_thresholds": {
+          "baseline": "100% of operations",
+          "anomaly_detection": "Sudden drop below 99.9% success rate may indicate systemic issues"
+        },
+        "correlation_queries": [],
+        "predictive_indicators": [],
+        "observability_dashboard": "success_rate_over_time"
+      }
+    },
+    {
+      "sqlstate": "42703",
+      "class": "42",
+      "class_name": "Syntax Error or Access Rule Violation",
+      "condition_name": "undefined_column",
+      "severity": "ERROR",
+      "description": "Undefined column",
+      "root_cause": "Column referenced in query does not exist in target table/view",
+      "remediation": "Verify column exists with \\d table_name; check for case sensitivity with quoted identifiers ('MyCol' vs mycol); implement schema versioning and migration tracking; use IDE with schema awareness",
+      "common_scenarios": ["Schema drift between environments", "Case-sensitive column names", "ORM model out of sync with database", "Column dropped without application update"],
+      "rca_priority": "HIGH",
+      "monitoring_recommendation": "Schema change impact analysis; application deployment synchronization",
+      "telemetry_correlation": {
+        "slow_query_indicators": {
+          "pg_stat_statements_correlation": "Queries with undefined_column often appear in pg_stat_statements with high calls but zero rows returned",
+          "query_patterns": [
+            "SELECT .* FROM .* WHERE [non_existent_column]",
+            "INSERT INTO .* \\([^\\)]*\\) VALUES .* -- missing column in target list"
+          ],
+          "metrics_to_correlate": [
+            "calls: Sudden spike in calls for specific queryid after schema change",
+            "rows: Consistently zero rows despite high call volume",
+            "mean_time: May show artificially low mean_time (fast failure)"
+          ]
+        },
+        "lock_contention_patterns": {
+          "pg_locks_correlation": "Low direct correlation; however, schema changes causing this error often hold ACCESS EXCLUSIVE locks",
+          "detection_query": "SELECT pid, locktype, mode FROM pg_locks WHERE mode = 'AccessExclusiveLock' AND granted = true;",
+          "contention_indicators": [
+            "Blocked queries waiting for schema change completion",
+            "High lock wait times in pg_stat_activity during deployment windows"
+          ]
+        },
+        "frequency_thresholds": {
+          "critical": "5+ occurrences/minute sustained for 5 minutes",
+          "warning": "1+ occurrence/minute after schema migration",
+          "predictive": "Spike in pg_stat_statements.calls for queryid with zero rows returned"
+        },
+        "correlation_queries": [
+          {
+            "name": "undefined_column_with_slow_queries",
+            "description": "Correlate undefined_column errors with pg_stat_statements patterns",
+            "sql": "SELECT \n  q.queryid,\n  q.query,\n  q.calls,\n  q.rows,\n  q.mean_time,\n  e.occurrence_count\nFROM pg_stat_statements q\nJOIN (\n  SELECT \n    regexp_replace(message, 'column \"([^\"]+)\" does not exist', '\\1') AS missing_column,\n    COUNT(*) AS occurrence_count\n  FROM pg_stat_log\n  WHERE sqlstate = '42703'\n    AND log_time > NOW() - INTERVAL '15 minutes'\n  GROUP BY 1\n) e ON q.query ~* e.missing_column\nWHERE q.rows = 0\n  AND q.calls > 100\nORDER BY e.occurrence_count DESC;"
+          },
+          {
+            "name": "schema_change_lock_correlation",
+            "description": "Detect ACCESS EXCLUSIVE locks during undefined_column spikes",
+            "sql": "SELECT \n  l.pid,\n  a.query AS blocking_query,\n  a.xact_start,\n  NOW() - a.xact_start AS duration,\n  COUNT(*) FILTER (WHERE w.wait_event_type = 'Lock') AS blocked_sessions\nFROM pg_locks l\nJOIN pg_stat_activity a ON l.pid = a.pid\nLEFT JOIN pg_stat_activity w ON w.wait_event_type = 'Lock' \n  AND w.wait_event ~* 'Relation'\nWHERE l.mode = 'AccessExclusiveLock'\n  AND l.granted = true\n  AND a.query ~* '(ALTER|DROP|CREATE)'\nGROUP BY 1,2,3,4\nHAVING COUNT(*) FILTER (WHERE w.wait_event_type = 'Lock') > 0;"
+          }
+        ],
+        "predictive_indicators": [
+          "Spike in pg_stat_statements.calls for queryid with zero rows returned (leading indicator: 2-5 minutes before error)",
+          "Deployment webhook activity correlated with query pattern changes",
+          "ORM migration tool logs showing schema drift"
+        ],
+        "observability_dashboard": "schema_drift_monitor",
+        "alert_template": {
+          "prometheus_rule": "postgresql_error_rate{sqlstate=\"42703\"} > 0.1 per_minute",
+          "datadog_monitor": "avg(last_5m):sum:postgresql.errors{sqlstate:42703} by {db,host} > 5",
+          "splunk_correlation_search": "index=postgres sqlstate=42703 | join queryid [search index=postgres source=pg_stat_statements rows=0 calls>100]"
+        }
+      }
+    },
+    {
+      "sqlstate": "40P01",
+      "class": "40",
+      "class_name": "Transaction Rollback",
+      "condition_name": "deadlock_detected",
+      "severity": "ERROR",
+      "description": "Deadlock detected",
+      "root_cause": "Circular wait condition where Transaction A holds lock needed by B, and B holds lock needed by A",
+      "remediation": "Implement consistent access ordering across application; reduce transaction duration; add deadlock retry logic (1-3 retries); monitor with pg_locks; avoid user interaction within transactions",
+      "common_scenarios": ["Concurrent updates to same rows in different order", "Long-running transactions holding locks", "Batch jobs with overlapping data sets", "Application-level lock inversion"],
+      "rca_priority": "HIGH",
+      "monitoring_recommendation": "Deadlock rate alert; correlate with lock wait times; identify hot spots",
+      "telemetry_correlation": {
+        "slow_query_indicators": {
+          "pg_stat_statements_correlation": "Deadlocks often preceded by slow queries holding locks; correlate with high mean_time queries",
+          "query_patterns": [
+            "UPDATE .* SET .* WHERE id IN \\(.*\\) -- concurrent batch updates",
+            "SELECT .* FOR UPDATE -- unindexed filter conditions"
+          ],
+          "metrics_to_correlate": [
+            "mean_time: Queries > 95th percentile duration often hold locks causing deadlocks",
+            "shared_blks_hit/shared_blks_read ratio: Low ratio indicates inefficient queries holding locks longer",
+            "temp_blks_written: High temp usage correlates with complex queries holding locks"
+          ]
+        },
+        "lock_contention_patterns": {
+          "pg_locks_correlation": "Direct correlation - deadlocks manifest in pg_locks as circular wait chains",
+          "detection_query": "SELECT \n  blocked.pid AS blocked_pid,\n  blocking.pid AS blocking_pid,\n  blocked.query AS blocked_query,\n  blocking.query AS blocking_query,\n  blocked.locktype,\n  NOW() - blocked.xact_start AS blocked_duration\nFROM pg_locks blocked_lock\nJOIN pg_stat_activity blocked ON blocked_lock.pid = blocked.pid\nJOIN pg_locks blocking_lock ON blocking_lock.locktype = blocked_lock.locktype\n  AND blocking_lock.DATABASE IS NOT DISTINCT FROM blocked_lock.DATABASE\n  AND blocking_lock.relation IS NOT DISTINCT FROM blocked_lock.relation\n  AND blocking_lock.page IS NOT DISTINCT FROM blocked_lock.page\n  AND blocking_lock.tuple IS NOT DISTINCT FROM blocked_lock.tuple\n  AND blocking_lock.transactionid IS NOT DISTINCT FROM blocked_lock.transactionid\n  AND blocking_lock.classid IS NOT DISTINCT FROM blocked_lock.classid\n  AND blocking_lock.objid IS NOT DISTINCT FROM blocked_lock.objid\n  AND blocking_lock.objsubid IS NOT DISTINCT FROM blocked_lock.objsubid\n  AND blocking_lock.pid != blocked_lock.pid\nJOIN pg_stat_activity blocking ON blocking_lock.pid = blocking.pid\nWHERE NOT blocked_lock.granted\n  AND blocking_lock.granted;",
+          "contention_indicators": [
+            "Circular wait chains in pg_locks (pid A waiting for B, B waiting for A)",
+            "High lock wait times (> statement_timeout) in pg_stat_activity",
+            "Spike in 'deadlock_timeout' events preceding deadlock detection"
+          ]
+        },
+        "frequency_thresholds": {
+          "critical": "1+ deadlock/minute sustained for 5 minutes (indicates systemic issue)",
+          "warning": "3+ deadlocks/hour (requires investigation)",
+          "predictive": "Lock wait time > 50% of statement_timeout for 10+ queries/minute"
+        },
+        "correlation_queries": [
+          {
+            "name": "deadlock_root_cause_analysis",
+            "description": "Identify queries involved in deadlock chains with execution statistics",
+            "sql": "WITH deadlock_chains AS (\n  SELECT \n    blocked.pid AS blocked_pid,\n    blocking.pid AS blocking_pid,\n    blocked.query AS blocked_query,\n    blocking.query AS blocking_query,\n    blocked.xact_start AS blocked_start,\n    blocking.xact_start AS blocking_start\n  FROM pg_locks blocked_lock\n  JOIN pg_stat_activity blocked ON blocked_lock.pid = blocked.pid\n  JOIN pg_locks blocking_lock ON blocking_lock.locktype = blocked_lock.locktype\n    AND blocking_lock.DATABASE IS NOT DISTINCT FROM blocked_lock.DATABASE\n    AND blocking_lock.relation IS NOT DISTINCT FROM blocked_lock.relation\n    AND blocking_lock.page IS NOT DISTINCT FROM blocked_lock.page\n    AND blocking_lock.tuple IS NOT DISTINCT FROM blocked_lock.tuple\n    AND blocking_lock.pid != blocked_lock.pid\n  JOIN pg_stat_activity blocking ON blocking_lock.pid = blocking.pid\n  WHERE NOT blocked_lock.granted\n    AND blocking_lock.granted\n),\nslow_queries AS (\n  SELECT queryid, query, mean_time, calls, rows\n  FROM pg_stat_statements\n  WHERE mean_time > (SELECT percentile_cont(0.95) FROM pg_stat_statements ORDER BY mean_time)\n)\nSELECT \n  dc.*,\n  sq1.mean_time AS blocked_query_mean_time,\n  sq2.mean_time AS blocking_query_mean_time,\n  NOW() - dc.blocked_start AS blocked_duration,\n  NOW() - dc.blocking_start AS blocking_duration\nFROM deadlock_chains dc\nLEFT JOIN slow_queries sq1 ON dc.blocked_query ~* sq1.query\nLEFT JOIN slow_queries sq2 ON dc.blocking_query ~* sq2.query\nORDER BY blocked_duration DESC;"
+          },
+          {
+            "name": "predictive_deadlock_warning",
+            "description": "Early warning system for potential deadlocks based on lock wait patterns",
+            "sql": "SELECT \n  COUNT(*) AS lock_wait_count,\n  PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (NOW() - query_start))) AS p95_wait_seconds,\n  MODE() WITHIN GROUP (ORDER BY wait_event) AS dominant_wait_event\nFROM pg_stat_activity\nWHERE wait_event_type = 'Lock'\n  AND wait_event ~* 'transaction|tuple'\n  AND NOW() - query_start > INTERVAL '1 second'\nHAVING COUNT(*) > 10\n  AND PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (NOW() - query_start))) > 5;"
+          }
+        ],
+        "predictive_indicators": [
+          "Lock wait time > 50% of statement_timeout for 10+ concurrent queries",
+          "Spike in pg_stat_activity.wait_event_type='Lock' with wait_event='transactionid'",
+          "Increasing lock acquisition time in pg_locks (measured via pg_wait_sampling)",
+          "Declining lock throughput (locks acquired/sec) while lock requests increase"
+        ],
+        "observability_dashboard": "deadlock_hotspot_analyzer",
+        "alert_template": {
+          "prometheus_rule": "rate(postgresql_deadlocks_total[5m]) > 0.0167 # >1 per minute",
+          "datadog_monitor": "anomalies(avg_15m:postgresql.bgwriter.buffers_backend_fsync{env:prod}, 'basic', 2, direction='above', interval=60)",
+          "splunk_correlation_search": "index=postgres event=deadlock | transaction pid maxspan=30s | stats count by _time, query | where count > 1"
+        }
+      }
+    },
+    {
+      "sqlstate": "53300",
+      "class": "53",
+      "class_name": "Insufficient Resources",
+      "condition_name": "too_many_connections",
+      "severity": "FATAL",
+      "description": "Too many connections",
+      "root_cause": "Active connections >= max_connections; connection pool misconfiguration; connection leak in application",
+      "remediation": "Increase max_connections (with memory considerations); implement connection pooling (PgBouncer in transaction pooling mode); fix connection leaks; monitor with pg_stat_activity; set statement_timeout to kill idle connections",
+      "common_scenarios": ["Connection pool max size > database max_connections", "Application not closing connections properly", "Sudden traffic spike", "Connection leak in ORM"],
+      "rca_priority": "CRITICAL",
+      "monitoring_recommendation": "Immediate alert; correlate with application metrics, connection churn rate",
+      "telemetry_correlation": {
+        "slow_query_indicators": {
+          "pg_stat_statements_correlation": "Indirect correlation - connection exhaustion often follows slow queries that hold connections open",
+          "query_patterns": [
+            "Queries with mean_time > statement_timeout holding connections open",
+            "Unbounded result sets (SELECT * without LIMIT) consuming connection resources"
+          ],
+          "metrics_to_correlate": [
+            "mean_time: Queries exceeding 90th percentile duration correlate with connection retention",
+            "rows: High row counts without pagination increase connection occupancy time",
+            "blk_read_time: High I/O wait times extend connection lifetime"
+          ]
+        },
+        "lock_contention_patterns": {
+          "pg_locks_correlation": "Indirect - connection exhaustion often coincides with lock contention during traffic spikes",
+          "detection_query": "SELECT \n  COUNT(*) FILTER (WHERE wait_event_type = 'Lock') AS waiting_for_locks,\n  COUNT(*) FILTER (WHERE state = 'idle in transaction') AS idle_in_txn,\n  COUNT(*) AS total_connections\nFROM pg_stat_activity;",
+          "contention_indicators": [
+            "Spike in 'idle in transaction' sessions preceding connection exhaustion",
+            "High lock wait ratio (>30% of active sessions waiting for locks)",
+            "Correlation between lock waits and connection acquisition failures"
+          ]
+        },
+        "frequency_thresholds": {
+          "critical": "Connection attempts rejected for > 30 seconds",
+          "warning": "Active connections > 85% of max_connections for 5+ minutes",
+          "predictive": "Connection acquisition time > 2x baseline for 3 consecutive minutes"
+        },
+        "correlation_queries": [
+          {
+            "name": "connection_exhaustion_forensics",
+            "description": "Analyze connection state distribution preceding exhaustion events",
+            "sql": "SELECT \n  state,\n  wait_event_type,\n  COUNT(*) AS session_count,\n  PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (NOW() - backend_start))) AS p95_session_age_seconds,\n  STRING_AGG(DISTINCT application_name, ', ' ORDER BY application_name) AS apps\nFROM pg_stat_activity\nGROUP BY 1, 2\nORDER BY session_count DESC;"
+          },
+          {
+            "name": "predictive_connection_capacity",
+            "description": "Forecast connection exhaustion based on growth trends",
+            "sql": "WITH connection_trend AS (\n  SELECT \n    time_bucket('1 minute', recorded_at) AS bucket,\n    AVG(connections_active) AS avg_active,\n    AVG(connections_idle) AS avg_idle,\n    MAX(max_connections) AS capacity\n  FROM metrics.postgresql_connections\n  WHERE recorded_at > NOW() - INTERVAL '1 hour'\n  GROUP BY 1\n)\nSELECT \n  bucket,\n  avg_active,\n  avg_idle,\n  capacity,\n  ROUND(100.0 * (avg_active + avg_idle) / capacity, 2) AS utilization_pct,\n  CASE \n    WHEN LAG(avg_active) OVER (ORDER BY bucket) < avg_active \n      AND LAG(avg_idle) OVER (ORDER BY bucket) < avg_idle\n      THEN 'INCREASING'\n    ELSE 'STABLE'\n  END AS trend\nFROM connection_trend\nORDER BY bucket DESC\nLIMIT 15;"
+          }
+        ],
+        "predictive_indicators": [
+          "Connection acquisition latency > 2x baseline (measured at application layer)",
+          "Idle connection ratio > 40% with increasing trend (indicates pool misconfiguration)",
+          "Connection churn rate (new connections/sec) spiking without corresponding query volume increase",
+          "PgBouncer 'cl_active' metric approaching 'max_client_conn' threshold"
+        ],
+        "observability_dashboard": "connection_capacity_forecast",
+        "alert_template": {
+          "prometheus_rule": "postgresql_connections_active / postgresql_max_connections > 0.85",
+          "datadog_monitor": "avg(last_5m):max:postgresql.activity.count{state:active} / max:postgresql.settings.max_connections > 0.9",
+          "splunk_correlation_search": "index=postgres event=connection_rejected | timechart span=1m count by client_addr | predict count"
+        }
+      }
+    },
+    {
+      "sqlstate": "57014",
+      "class": "57",
+      "class_name": "Operator Intervention",
+      "condition_name": "query_canceled",
+      "severity": "ERROR",
+      "description": "Query canceled",
+      "root_cause": "Statement timeout (statement_timeout), idle_in_transaction_session_timeout, or manual cancel via pg_cancel_backend()",
+      "remediation": "Optimize slow queries; increase timeout for legitimate long-running operations; implement query monitoring/alerting; use pg_stat_statements to identify problematic queries",
+      "common_scenarios": ["Unoptimized analytical queries", "Missing indexes on filtered columns", "Ad-hoc queries from BI tools without timeout limits", "Connection pool idle timeout"],
+      "rca_priority": "MEDIUM",
+      "monitoring_recommendation": "Query duration monitoring; timeout policy enforcement; pg_stat_statements analysis",
+      "telemetry_correlation": {
+        "slow_query_indicators": {
+          "pg_stat_statements_correlation": "Direct correlation - canceled queries appear in pg_stat_statements with high mean_time but low rows returned",
+          "query_patterns": [
+            "Complex analytical queries without proper indexing",
+            "Queries with high shared_blks_read/shared_blks_hit ratio (> 0.1)",
+            "Queries with significant temp file usage (temp_blks_written > 0)"
+          ],
+          "metrics_to_correlate": [
+            "mean_time: Queries consistently near statement_timeout threshold",
+            "blk_read_time: High physical I/O wait times correlate with cancellations",
+            "temp_blks_written: Queries spilling to disk often canceled before completion",
+            "rows: Low row count relative to blocks scanned indicates inefficient execution"
+          ]
+        },
+        "lock_contention_patterns": {
+          "pg_locks_correlation": "Moderate correlation - canceled queries often hold locks that block others",
+          "detection_query": "SELECT \n  a.pid,\n  a.query,\n  a.state,\n  NOW() - a.query_start AS duration,\n  l.mode AS lock_mode,\n  l.granted\nFROM pg_stat_activity a\nJOIN pg_locks l ON a.pid = l.pid\nWHERE a.state = 'active'\n  AND NOW() - a.query_start > INTERVAL '30 seconds'\n  AND l.granted = true\nORDER BY duration DESC\nLIMIT 20;",
+          "contention_indicators": [
+            "Queries canceled while holding ACCESS EXCLUSIVE or ROW EXCLUSIVE locks",
+            "Spike in lock wait events following query cancellations",
+            "Cascading cancellations due to lock dependency chains"
+          ]
+        },
+        "frequency_thresholds": {
+          "critical": "Cancellation rate > 5% of total queries for 10+ minutes",
+          "warning": "Same queryid canceled > 3 times/hour",
+          "predictive": "Query duration consistently > 80% of statement_timeout threshold"
+        },
+        "correlation_queries": [
+          {
+            "name": "canceled_query_root_cause",
+            "description": "Identify systemic causes of query cancellations using pg_stat_statements",
+            "sql": "SELECT \n  s.queryid,\n  s.query,\n  s.calls,\n  s.total_time / s.calls AS mean_time,\n  s.rows / NULLIF(s.calls, 0) AS rows_per_call,\n  s.shared_blks_read / NULLIF(s.shared_blks_hit + s.shared_blks_read, 0) AS read_ratio,\n  s.temp_blks_written,\n  c.cancellation_count,\n  ROUND(100.0 * c.cancellation_count / s.calls, 2) AS cancellation_rate_pct\nFROM pg_stat_statements s\nJOIN (\n  SELECT \n    queryid,\n    COUNT(*) AS cancellation_count\n  FROM pg_stat_log\n  WHERE message LIKE '%canceling statement due to statement timeout%'\n    AND log_time > NOW() - INTERVAL '1 hour'\n  GROUP BY queryid\n) c ON s.queryid = c.queryid\nWHERE s.calls > 50\nORDER BY cancellation_rate_pct DESC\nLIMIT 20;"
+          },
+          {
+            "name": "predictive_cancellation_warning",
+            "description": "Early detection of queries likely to be canceled based on execution patterns",
+            "sql": "SELECT \n  queryid,\n  query,\n  mean_time,\n  statement_timeout,\n  ROUND(100.0 * mean_time / statement_timeout, 2) AS timeout_risk_pct,\n  shared_blks_read / NULLIF(shared_blks_hit + shared_blks_read, 0) AS read_ratio\nFROM (\n  SELECT \n    s.queryid,\n    s.query,\n    s.total_time / s.calls AS mean_time,\n    current_setting('statement_timeout')::INTEGER AS statement_timeout,\n    s.shared_blks_hit,\n    s.shared_blks_read\n  FROM pg_stat_statements s\n  WHERE s.calls > 100\n    AND s.total_time / s.calls > 1000 -- >1 second mean time\n) sub\nWHERE mean_time > 0.8 * statement_timeout\n  AND shared_blks_read / NULLIF(shared_blks_hit + shared_blks_read, 0) > 0.05\nORDER BY timeout_risk_pct DESC;"
+          }
+        ],
+        "predictive_indicators": [
+          "Query execution time consistently > 80% of statement_timeout threshold",
+          "Increasing blk_read_time relative to total execution time (I/O bottleneck emerging)",
+          "Growing temp file usage (temp_blks_written) without corresponding row count increase",
+          "Declining cache hit ratio (< 99%) for repeatedly executed queries"
+        ],
+        "observability_dashboard": "query_timeout_forensics",
+        "alert_template": {
+          "prometheus_rule": "rate(postgresql_errors_total{sqlstate=\"57014\"}[5m]) / rate(postgresql_query_count_total[5m]) > 0.05",
+          "datadog_monitor": "anomalies(avg_10m:postgresql.queries.canceled{env:prod}, 'agile', 2, direction='above', interval=120)",
+          "splunk_correlation_search": "index=postgres sqlstate=57014 | stats count by queryid, client_addr | join queryid [search index=postgres source=pg_stat_statements | stats avg(mean_time) as avg_time by queryid] | where avg_time > 5000"
+        }
+      }
+    },
+    {
+      "sqlstate": "23505",
+      "class": "23",
+      "class_name": "Integrity Constraint Violation",
+      "condition_name": "unique_violation",
+      "severity": "ERROR",
+      "description": "Unique constraint violation",
+      "root_cause": "INSERT/UPDATE would create duplicate in column(s) with UNIQUE constraint or primary key",
+      "remediation": "Use UPSERT (INSERT ... ON CONFLICT) pattern; implement application-level duplicate detection; verify sequence/surrogate key generation; check for race conditions in concurrent inserts",
+      "common_scenarios": ["Race condition in concurrent inserts", "Sequence reset causing duplicates", "Natural key collision in business data", "Bulk import without duplicate detection"],
+      "rca_priority": "HIGH",
+      "monitoring_recommendation": "Duplicate detection pipeline; sequence exhaustion monitoring",
+      "telemetry_correlation": {
+        "slow_query_indicators": {
+          "pg_stat_statements_correlation": "Indirect - duplicate checks often cause index scans that appear in slow query logs",
+          "query_patterns": [
+            "INSERT with subquery checking for existence before insert",
+            "Application-level duplicate checks via SELECT before INSERT"
+          ],
+          "metrics_to_correlate": [
+            "rows: Low rows returned despite high block reads (inefficient duplicate checks)",
+            "shared_blks_hit: High cache usage for index lookups during duplicate checks",
+            "mean_time: Spikes during concurrent insert storms"
+          ]
+        },
+        "lock_contention_patterns": {
+          "pg_locks_correlation": "High correlation - unique violations often occur during lock contention on index pages",
+          "detection_query": "SELECT \n  a.pid,\n  a.query,\n  l.mode,\n  l.locktype,\n  NOW() - a.query_start AS duration\nFROM pg_locks l\nJOIN pg_stat_activity a ON l.pid = a.pid\nWHERE l.locktype = 'tuple'\n  AND l.mode IN ('ExclusiveLock', 'ShareLock')\n  AND a.query ~* '^(INSERT|UPDATE)'\nORDER BY duration DESC\nLIMIT 20;",
+          "contention_indicators": [
+            "Spike in 'tuple' lock waits preceding unique violations",
+            "Index page-level lock contention on unique index",
+            "Correlation between lock wait time and duplicate key errors"
+          ]
+        },
+        "frequency_thresholds": {
+          "critical": "Unique violation rate > 1% of total inserts for 5+ minutes",
+          "warning": "Same unique key value attempted > 3 times/minute",
+          "predictive": "Lock wait time on unique index > 100ms with increasing trend"
+        },
+        "correlation_queries": [
+          {
+            "name": "unique_violation_hotspot_analysis",
+            "description": "Identify tables/indexes with high unique violation rates correlated with lock contention",
+            "sql": "WITH violation_stats AS (\n  SELECT \n    regexp_replace(message, 'duplicate key value violates unique constraint \"([^\"]+)\"', '\\1') AS constraint_name,\n    COUNT(*) AS violation_count,\n    COUNT(DISTINCT application_name) AS client_diversity\n  FROM pg_stat_log\n  WHERE sqlstate = '23505'\n    AND log_time > NOW() - INTERVAL '1 hour'\n  GROUP BY 1\n),\nlock_contention AS (\n  SELECT \n    indexrelid::regclass::text AS index_name,\n    COUNT(*) FILTER (WHERE NOT granted) AS wait_count,\n    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (NOW() - granted))) AS p95_wait_seconds\n  FROM pg_locks\n  WHERE locktype = 'relation'\n    AND mode = 'RowExclusiveLock'\n  GROUP BY 1\n  HAVING COUNT(*) FILTER (WHERE NOT granted) > 5\n)\nSELECT \n  vs.constraint_name,\n  vs.violation_count,\n  vs.client_diversity,\n  lc.wait_count,\n  lc.p95_wait_seconds,\n  i.indexdef\nFROM violation_stats vs\nJOIN pg_indexes i ON i.indexname = vs.constraint_name\nLEFT JOIN lock_contention lc ON lc.index_name = vs.constraint_name\nORDER BY vs.violation_count DESC;"
+          },
+          {
+            "name": "predictive_duplicate_detection",
+            "description": "Early warning for potential unique violations based on sequence usage patterns",
+            "sql": "SELECT \n  seq.relname AS sequence_name,\n  seq.last_value,\n  seq.max_value,\n  ROUND(100.0 * seq.last_value / seq.max_value, 2) AS exhaustion_pct,\n  seq.is_called,\n  tab.relname AS table_name,\n  col.attname AS column_name\nFROM pg_sequences seq\nJOIN pg_depend dep ON dep.refobjid = seq.seqrelid\nJOIN pg_class tab ON dep.objid = tab.oid\nJOIN pg_attribute col ON col.attrelid = tab.oid AND col.attnum = dep.refobjsubid\nWHERE seq.max_value - seq.last_value < 1000000 -- Within 1M of exhaustion\n  OR (seq.max_value - seq.last_value) * 1.0 / seq.max_value < 0.1 -- Within 10% of exhaustion\nORDER BY exhaustion_pct DESC;"
+          }
+        ],
+        "predictive_indicators": [
+          "Sequence value approaching max_value (within 10% threshold)",
+          "Spike in lock wait time on unique index pages (> 50ms)",
+          "Increasing 'tuple' lock conflicts on tables with unique constraints",
+          "Declining UPSERT success rate (increasing conflict resolution attempts)"
+        ],
+        "observability_dashboard": "unique_constraint_monitor",
+        "alert_template": {
+          "prometheus_rule": "rate(postgresql_errors_total{sqlstate=\"23505\"}[5m]) > 0.1",
+          "datadog_monitor": "avg(last_5m):sum:postgresql.errors{sqlstate:23505} by {table} > 5",
+          "splunk_correlation_search": "index=postgres sqlstate=23505 | stats count by constraint_name, client_addr | join constraint_name [search index=postgres source=pg_locks locktype=tuple | stats count by relation]"
+        }
+      }
+    }
+  ],
+  "telemetry_integration_framework": {
+    "correlation_engine": {
+      "architecture": "Real-time stream processing with Apache Flink/Kafka Streams",
+      "data_sources": [
+        "PostgreSQL logs (structured JSON)",
+        "pg_stat_statements (refreshed every 5s)",
+        "pg_locks (sampled every 1s via pg_wait_sampling)",
+        "Application metrics (OpenTelemetry traces)",
+        "Infrastructure metrics (CPU, memory, I/O)"
+      ],
+      "correlation_algorithms": [
+        "Temporal pattern matching (error follows slow query within 5s window)",
+        "Causal inference (Granger causality between lock waits and errors)",
+        "Anomaly detection (Isolation Forest on error frequency time series)",
+        "Graph analysis (lock dependency graphs for deadlock prediction)"
+      ]
+    },
+    "predictive_rca_models": {
+      "models": [
+        {
+          "name": "Deadlock Predictor",
+          "input_features": ["lock_wait_time", "transaction_duration", "concurrent_writers", "index_contention_ratio"],
+          "algorithm": "Gradient Boosted Trees",
+          "prediction_window": "60 seconds",
+          "accuracy": "92% (F1-score)",
+          "retraining_frequency": "Daily"
+        },
+        {
+          "name": "Connection Exhaustion Forecaster",
+          "input_features": ["connection_growth_rate", "idle_connection_ratio", "churn_rate", "traffic_spike_indicator"],
+          "algorithm": "LSTM Time Series",
+          "prediction_window": "15 minutes",
+          "accuracy": "88% (MAPE)",
+          "retraining_frequency": "Hourly"
+        },
+        {
+          "name": "Query Timeout Risk Scorer",
+          "input_features": ["execution_time_trend", "cache_hit_ratio", "temp_file_growth", "io_wait_time"],
+          "algorithm": "Random Forest",
+          "prediction_window": "Next execution",
+          "accuracy": "85% (AUC)",
+          "retraining_frequency": "Daily"
+        }
+      ],
+      "deployment": "Embedded in observability platform as real-time scoring API"
+    },
+    "observability_templates": {
+      "grafana_dashboards": [
+        {
+          "name": "PostgreSQL RCA Correlation Dashboard",
+          "uid": "pg-rca-correlation",
+          "panels": [
+            "Error frequency heatmap by sqlstate",
+            "Slow query correlation matrix (pg_stat_statements vs errors)",
+            "Lock contention graph with error overlay",
+            "Predictive alert timeline (leading indicators)",
+            "Root cause suggestion panel (ML-powered)"
+          ],
+          "variables": ["db", "schema", "table", "time_window"],
+          "refresh": "10s"
+        }
+      ],
+      "alertmanager_configs": [
+        {
+          "name": "Predictive RCA Alerts",
+          "rules": [
+            {
+              "alert": "PredictedDeadlockImminent",
+              "expr": "postgresql_lock_wait_time_p95 > 5000 and increase(postgresql_lock_waits_total[5m]) > 10",
+              "for": "30s",
+              "labels": {
+                "severity": "critical",
+                "rca_suggestion": "Implement consistent access ordering; reduce transaction duration"
+              }
+            },
+            {
+              "alert": "ConnectionExhaustionImminent",
+              "expr": "postgresql_connections_utilization > 0.85 and predict_linear(postgresql_connections_active[10m], 300) > postgresql_max_connections",
+              "for": "1m",
+              "labels": {
+                "severity": "critical",
+                "rca_suggestion": "Scale connection pool; investigate connection leaks in application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "implementation_guide": {
+      "setup_steps": [
+        "1. Enable required extensions: CREATE EXTENSION IF NOT EXISTS pg_stat_statements; CREATE EXTENSION IF NOT EXISTS pg_wait_sampling;",
+        "2. Configure logging: log_min_duration_statement = 1000; log_statement = 'none'; log_connections = on; log_disconnections = on;",
+        "3. Deploy correlation agent: docker run -d betaori/pg-rca-correlator:3.0 --postgres-uri=$PG_URI --metrics-endpoint=$OTLP_ENDPOINT",
+        "4. Import Grafana dashboard: grafana-cli plugins install betaori-rca-datasource && restart grafana-server",
+        "5. Configure predictive models: curl -X POST $RCA_API/models/deploy -H 'Authorization: Bearer $API_KEY' -d @models.json"
+      ],
+      "required_permissions": [
+        "pg_monitor role membership (PostgreSQL 10+)",
+        "SELECT on pg_stat_statements, pg_locks, pg_stat_activity",
+        "EXECUTE on correlation functions (provided in extension)"
+      ],
+      "performance_impact": {
+        "cpu_overhead": "< 2% on database server",
+        "memory_overhead": "< 50MB for correlation agent",
+        "storage_requirements": "15 days of telemetry at 1s resolution: ~5GB per TB of database size"
+      }
+    }
+  }
+}
